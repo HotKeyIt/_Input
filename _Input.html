@@ -28,13 +28,13 @@ ExitApp
 Input_Watcher(ByRef Input){                                                                  <em>; Function will be launched constantly</em>
   ToolTip % Input
 }
-Input_Execute(ByRef Input,c,a,s,e){
+Input_Execute(this,ByRef Input,c,a,s,e){
   MsgBox % e &quot;`nUser Input: &quot; Input                                                          <em>; E contains the parameter we supplied above</em>
 }
-Input_Delete(ByRef Input,c,a,s){
+Input_Delete(this,ByRef Input,c,a,s){
   Input:=&quot;&quot;                                                                                  <em>; Input is ByRef so we can modify it</em>
 }
-Input_Exit(ByRef Input,c,a,s){
+Input_Exit(this,ByRef Input,c,a,s){
   Return 1                                                                                  <em>; Notifies Input Method to finish Input</em>
 }</pre>
 
