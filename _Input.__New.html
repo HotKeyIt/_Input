@@ -1,0 +1,98 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>_Input.__New()</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="default.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+<h1>_Input.__New()</h1>
+<p>Creates an _Input class.</p>
+
+<pre class="Syntax">obj := new _Input(EndKeys[,WatchInput,Options,MatchList])</pre>
+<h3>Parameters</h4>
+<table class="info">
+<tr>
+  <td width="15%">EndKeys</td>
+  <td width="85%"><p>This Must be an Object containing {Keys:[&quot;Function&quot;,ParameterKey1,ParameterKey2,[ManyParams1Key1,ManyParams2Key1,...],...]} or {Keys:&quot;Function&quot;}.</p>
+<ul>
+<li>Keys is a RegEx needle that will be searched in all available EndKeys</li>
+<li>Function is the name of the function to call when key was hit</li>
+<li>ParameterKey1...  = parameter to pass to function (will be last parameter in function)</li>
+<li>- ParameterKey can be an array that will expand to parameters !!!</li>
+</ul>
+<p>!!! NOTE !!!</p>
+<pre class="NoIndent"><em>; WHEN USING | SEPARATOR IN ENDKEYS, KEYS MUST BE GIVEN IN ALPHABETICAL ORDER !!!</em>
+MyInput := new _Input({&quot;Enter|Tab&quot;:[&quot;Enter_Function&quot;,&quot;Enter&quot;,&quot;Tab&quot;]})
+<em>; FOLLOWING WOULD PRODUCE WRONG PARAMETERS BECAUSE KEYS ARE PROCESSED ALPHABETICALLY SO FIRST ENTER THAN TAB </em>
+MyInput := new _Input({&quot;Tab|Enter&quot;:[&quot;Input_Enter&quot;,&quot;Tab&quot;,&quot;Enter&quot;]})</pre>
+<ul>
+<li>Simple keys can have the value in second param</li>
+</ul>
+<pre class="NoIndent"><em>; For example </em>
+MyInput := new _Input({Enter:[&quot;Input_Enter&quot;,&quot;User Pressed Enter&quot;]})</pre>
+<ul>
+<li>NOTE AGAIN WHEN SPECIFYING SEVERAL ENDKEYS LIKE TAB|UP|DOWN THEY HAVE TO BE IN ALPHABETICAL ORDER TO MATCH PARAMETERS SO DOWN|TAB|UP</li>
+</ul>
+<pre class="NoIndent"><em>; For example &quot;F.*&quot; would match F1 - F24 and &quot;Numpad&quot; would match all NumPad keys</em>
+<em>; So pressing F6 causes following call: Pressed_F(InputVar,CtrlDown,AltDown,ShiftDown,6)</em>
+MyInput := new _Input({&quot;F.&quot;:[&quot;Pressed_F&quot;,1,2,3,4,5,6,7,8,9]})
+
+<em>; Here pressing F6 causes following call: Pressed_F(InputVar,CtrlDown,AltDown,ShiftDown,1,2,3)</em>
+MyInput := new _Input({&quot;F.&quot;:[&quot;Pressed_F&quot;,1,2,3,4,5,[1,2,3],7,8,9]})</pre>
+<ul>
+<li>Function:</li>
+<li>User function needs to have at least 4 parameters when no parameters were specified</li>
+</ul>
+<pre class="NoIndent">Input_Enter(ByRef Input,c,a,s){ <em>; C=CTRL, A=ALT, S=SHIFT</em>
+}</pre>
+<ul>
+<li>Otherwise 4 + as many as parameters for given key</li>
+</ul>
+<pre class="NoIndent">Input_Enter(ByRef Input,c,a,s,e){ <em>; C=CTRL, A=ALT, S=SHIFT, E = Errorlevel parameter</em>
+}</pre></td>
+</tr>
+<tr>
+  <td width="15%">WatchInput</td>
+  <td width="85%"><p>Name of a function that will be called using a timer and allows to see users input instantly.</p>
+<pre class="NoIndent"><em>; For example</em>
+WatchingInput(ByRef Input){
+  ToolTip % Input
+}</pre></td>
+</tr>
+<tr>
+  <td width="15%">Options</td>
+  <td width="85%">see Input command (default set to MIA (accept modifiers/Ignore ahk input/append variable content (A -&gt; only available in AHK_H)</td>
+</tr>
+<tr>
+  <td width="15%">MatchList</td>
+  <td width="85%">see Input command</td>
+</tr>
+</table>
+<h3>Returns</h3>
+<p>Input object that can be used to grab user or artficial input</p>
+<h3>Example</h3>
+<pre class="NoIndent">#include &lt;_Input&gt;                                                                            <em>; Requred due to _Input Class</em>
+Input := new _Input({&quot;Enter|Tab&quot;:[&quot;Input_Execute&quot;,&quot;User pressed Enter&quot;,&quot;User pressed Tab&quot;]   <em>; Input_Execute will be called when pressed Enter or Tab</em>
+                    ,Delete:&quot;Input_Delete&quot;,Escape:&quot;Input_Exit&quot;}                              <em>; Input_Delete will be called when pressed Delete</em>
+                    ,&quot;Input_Watcher&quot;)                                                        <em>; Input_Watcher will be called constantly while Input in progress</em>
+MsgBox % Input.Input()                                                                       <em>; Watch Input and show input when finished</em>
+ExitApp
+
+Input_Watcher(ByRef Input){                                                                  <em>; Function will be launched constantly</em>
+  ToolTip % Input
+}
+Input_Execute(ByRef Input,c,a,s,e){
+  MsgBox % e &quot;`nUser Input: &quot; Input                                                          <em>; E contains the parameter we supplied above</em>
+}
+Input_Delete(ByRef Input,c,a,s){
+  Input:=&quot;&quot;                                                                                  <em>; Input is ByRef so we can modify it</em>
+}
+Input_Exit(ByRef Input,c,a,s){
+  Return 1                                                                                  <em>; Notifies Input Method to finish Input</em>
+}</pre>
+
+</body>
+</html>

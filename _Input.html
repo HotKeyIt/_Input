@@ -1,0 +1,42 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>_Input Class</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="default.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+<h1>_Input Class</h1>
+<p>_Input class is a combination of Hotkey and Hotstrings with advanced features
+It serves an advanced, easy to use and invisible interface for user / application communication
+Using _Input it is very simple to keep your code very tidy and clear and very easy to maintain</p>
+<h2>Members</h2>
+<ul>
+  <li><a href="_Input.__New.html">Constructor</a></li>
+  <li><a href="_Input.Input.html">Input() Method</a></li>
+</ul>
+<h2>Example</h2>
+<pre class="NoIndent">#include &lt;_Input&gt;                                                                            <em>; Requred due to _Input Class</em>
+Input := new _Input({&quot;Enter|Tab&quot;:[&quot;Input_Execute&quot;,&quot;User pressed Enter&quot;,&quot;User pressed Tab&quot;]   <em>; Input_Execute will be called when pressed Enter or Tab</em>
+                    ,Delete:&quot;Input_Delete&quot;,Escape:&quot;Input_Exit&quot;}                              <em>; Input_Delete will be called when pressed Delete</em>
+                    ,&quot;Input_Watcher&quot;)                                                        <em>; Input_Watcher will be called constantly while Input in progress</em>
+MsgBox % Input.Input()                                                                       <em>; Watch Input and show input when finished</em>
+ExitApp
+
+Input_Watcher(ByRef Input){                                                                  <em>; Function will be launched constantly</em>
+  ToolTip % Input
+}
+Input_Execute(ByRef Input,c,a,s,e){
+  MsgBox % e &quot;`nUser Input: &quot; Input                                                          <em>; E contains the parameter we supplied above</em>
+}
+Input_Delete(ByRef Input,c,a,s){
+  Input:=&quot;&quot;                                                                                  <em>; Input is ByRef so we can modify it</em>
+}
+Input_Exit(ByRef Input,c,a,s){
+  Return 1                                                                                  <em>; Notifies Input Method to finish Input</em>
+}</pre>
+
+</body>
+</html>
