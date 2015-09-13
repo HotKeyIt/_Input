@@ -54,7 +54,7 @@ Class _Input {
         > Input_Enter(InputObject,ByRef Input,c,a,s){ ; C=CTRL, A=ALT, S=SHIFT
         > }
         * Otherwise 5 + as many as parameters for given key
-        > Input_Enter(ByRef Input,c,a,s,e){ ; C=CTRL, A=ALT, S=SHIFT, E = Errorlevel parameter
+        > Input_Enter(InputObject,ByRef Input,c,a,s,e){ ; C=CTRL, A=ALT, S=SHIFT, E = Errorlevel parameter
         > }
       WatchInput - Name of a function that will be called using a timer and allows to see users input instantly.
         > ; For example
@@ -74,13 +74,13 @@ Class _Input {
       > Input_Watcher(ByRef Input){                                                                  ; Function will be launched constantly
       >   ToolTip % Input
       > }
-      > Input_Execute(ByRef Input,c,a,s,e){
+      > Input_Execute(this,ByRef Input,c,a,s,e){
       >   MsgBox % e "`nUser Input: " Input                                                          ; E contains the parameter we supplied above
       > }
-      > Input_Delete(ByRef Input,c,a,s){
+      > Input_Delete(this,ByRef Input,c,a,s){
       >   Input:=""                                                                                  ; Input is ByRef so we can modify it
       > }
-      > Input_Exit(ByRef Input,c,a,s){
+      > Input_Exit(this,ByRef Input,c,a,s){
       >   Return 1                                                                                  ; Notifies Input Method to finish Input
       > }
     Returns:
