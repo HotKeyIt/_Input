@@ -47,13 +47,13 @@ Class _Input {
         > ; So pressing F6 causes following call: Pressed_F(InputVar,CtrlDown,AltDown,ShiftDown,6)
         > MyInput := new _Input({"F.":["Pressed_F",1,2,3,4,5,6,7,8,9]})
         > 
-        > ; Here pressing F6 causes following call: Pressed_F(InputVar,CtrlDown,AltDown,ShiftDown,1,2,3)
+        > ; Here pressing F6 causes following call: Pressed_F(InputObj,InputVar,CtrlDown,AltDown,ShiftDown,1,2,3)
         > MyInput := new _Input({"F.":["Pressed_F",1,2,3,4,5,[1,2,3],7,8,9]})
         * Function:
-        * User function needs to have at least 4 parameters when no parameters were specified
-        > Input_Enter(ByRef Input,c,a,s){ ; C=CTRL, A=ALT, S=SHIFT
+        * User function needs to have at least 5 parameters when no parameters were specified
+        > Input_Enter(InputObject,ByRef Input,c,a,s){ ; C=CTRL, A=ALT, S=SHIFT
         > }
-        * Otherwise 4 + as many as parameters for given key
+        * Otherwise 5 + as many as parameters for given key
         > Input_Enter(ByRef Input,c,a,s,e){ ; C=CTRL, A=ALT, S=SHIFT, E = Errorlevel parameter
         > }
       WatchInput - Name of a function that will be called using a timer and allows to see users input instantly.
@@ -86,7 +86,7 @@ Class _Input {
     Returns:
       Input object that can be used to grab user or artficial input
   */
-  __New(EndKeys,WatchInput="",Options="MIA",MatchList=""){
+  __New(EndKeys,WatchInput:="",Options:="MIA",MatchList:=""){
     static _EndKeys:=" AppsKey Backspace Break Browser_Back Browser_Favorites Browser_Forward Browser_Home Browser_Refresh Browser_Search Browser_Stop CapsLock CtrlBreak Delete Down End Enter Escape F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 Help Home Insert LAlt Launch_App1 Launch_App2 Launch_Mail Launch_Media LControl Left LShift LWin Media_Next Media_Play_Pause Media_Prev Media_Stop NumLock Numpad0 Numpad1 Numpad2 Numpad3 Numpad4 Numpad5 Numpad6 Numpad7 Numpad8 Numpad9 NumpadAdd NumpadAdd NumpadClear NumpadDel NumpadDiv NumpadDiv NumpadDot NumpadDown NumpadEnd NumpadEnter NumpadEnter NumpadHome NumpadIns NumpadLeft NumpadMult NumpadMult NumpadPgDn NumpadPgUp NumpadRight NumpadSub NumpadSub NumpadUp Pause PgDn PgUp PrintScreen RAlt RControl Right RShift RWin ScrollLock Sleep Space Tab Up Volume_Down Volume_Mute Volume_Up "
     this.WatchInput := WatchInput
     this.Options := Options
@@ -96,20 +96,20 @@ Class _Input {
       If RegExMatch(" Max TimeOut Match ","i)\s(" EndKey ")\s") ; ErrorLevel is not an EndKey: , go different route
       {
         idx:=1                      ; init function parameter index to 0
-        Loop,Parse,EndKey,|         ; in case we have several Errorlevel entries, e.g. Max|Timeout|Match (will launch same function)
+        LoopParse,%EndKey%,|         ; in case we have several Errorlevel entries, e.g. Max|Timeout|Match (will launch same function)
         {
           this.Parameters[A_LoopField]:=[]   ; create an array object for parameters
           idx++                     ; increase index by one, will be set to 1 on first run
           If IsObject(Function){    ; parameter is an array object containing function and parameters for function
             thisFunction[A_LoopField]:=Function.1                  ; function name
-            this.Parameters[A_LoopField].Insert(Function[idx])        ; function parameters
+            this.Parameters[A_LoopField].Push(Function[idx])        ; function parameters
           } else this.Function[A_LoopField]:=Function              ; no object was given, so it is a function name only
         }
       } else {   ; ErrorLevel is EndKey:
         ; Replace Ctrl to Control and Control+Alt+Shift+Win to LAlt|RAlt....
         EndKey:=RegExReplace(RegExReplace(EndKey,"i)([LR])?Ctrl","$1Control"),"i)(Alt|Control|Shift|Win)","L$1$2|R$1$2")
         idx:=1                      ; init function parameter index to 0
-        Loop,Parse,_EndKeys,%A_Space% ; check all available Keys for match in our pattern
+        LoopParse,%_EndKeys%,%A_Space% ; check all available Keys for match in our pattern
         {
           If (RegExMatch(A_LoopField,"i)^(" EndKey ")$")){
             this.EndKeys .= "{" A_LoopField "}" ; add EndKey to list of EndKeys
@@ -117,7 +117,7 @@ Class _Input {
             idx++                     ; increase index by one, will be set to 1 on first run
             If IsObject(Function){    ; parameter is an array object containing function and parameters for function
               this.Function["EndKey:" A_LoopField]:=Function.1                   ; function name
-              this.Parameters["EndKey:" A_LoopField].Insert(Function[idx])       ; function parameters
+              this.Parameters["EndKey:" A_LoopField].Push(Function[idx])       ; function parameters
             } else this.Function["EndKey:" A_LoopField]:=Function                ; no object was given, so it is a function name only
           }
         }
@@ -136,8 +136,8 @@ Class _Input {
 			AlwaysNotify - Watching Function will be called even if input variable did not change
     Returns: Entered (final) input
   */
-  Input(ByRef Input="",Timer=25,Options="",MatchList="",AlwaysNotify=0){
-    If IsFunc(Function:=this.WatchInput) ; check if we have a valid function for watching input
+  Input(ByRef Input:="",Timer:=25,Options:="",MatchList:="",AlwaysNotify:=0){
+		If IsFunc(Function:=this.WatchInput) ; check if we have a valid function for watching input
       SetTimer,_Input,% Timer       ; set timer to run watching function
 		else Function:=""
     FuncObj:=this.Function
@@ -145,8 +145,8 @@ Class _Input {
       Input,Input,% Options!=""?Options:this.Options,% this.EndKeys,% MatchList!=""?MatchList:this.MatchList ; pass parameters created previously
 			If Function
 				SetTimer,_Input,Off         ; disable watching function while processing input and in case we break
-			If (ErrorLevel="NewInput"     ; NewInput or a function that returns true will break the Loop
-        || FuncObj[ErrorLevel](Input,GetKeyState("Ctrl","P"),GetKeyState("Alt","P"),GetKeyState("Shift","P"),this.Parameters[ErrorLevel]*))
+			If (ErrorLevel="NewInput"       ; NewInput or a function that returns true will break the Loop
+				|| (FuncObj[ErrorLevel](Input,GetKeyState("Ctrl","P"),GetKeyState("Alt","P"),GetKeyState("Shift","P"),this.Parameters[ErrorLevel]*)) )
         break
 			If Function
 				SetTimer,_Input,% Timer     ; enable watching function again
@@ -156,7 +156,7 @@ Class _Input {
     _Input:                         ; Private label only accessible to Input method
 			If (!AlwaysNotify && Previous=Input)
 				return
-			Function.(Input)              ; launch watching function
+			%Function%(Input)              ; launch watching function
 			If !AlwaysNotify
 				Previous:=Input
     Return
